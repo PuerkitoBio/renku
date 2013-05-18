@@ -6,3 +6,4 @@
 *.swo
 *.rdb
 tags
+/renku
