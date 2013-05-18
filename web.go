@@ -35,7 +35,7 @@ func servePage(w http.ResponseWriter, r *http.Request) {
 func listenAndServe(opts serverOptions) {
 	mux := http.NewServeMux()
 	// TODO : Eventually, will go through cache first
-	mux.Handle("/public", http.StripPrefix("/public",
+	mux.Handle("/public/", http.StripPrefix("/public/",
 		http.FileServer(http.Dir(path.Join(opts.Root, "public/")))))
 	mux.HandleFunc("/", servePage)
 

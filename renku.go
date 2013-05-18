@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/jessevdk/go-flags"
 )
@@ -25,6 +26,20 @@ var (
 func main() {
 	_, err := flags.Parse(&opts)
 	if err == nil {
-		log.Printf("%+v", opts)
+		if opts.Output != "" && opts.Output != "stdout" {
+			// Open file for logging
+			f, err := os.Open(opts.Output)
+			if err != nil {
+				log.Fatal("error opening specified output file:", err)
+			}
+			log.SetOutput(f)
+			defer f.Close()
+		}
+
+		so := serverOptions{
+			Port: opts.Port,
+			Root: opts.Root,
+		}
+		listenAndServe(so)
 	}
 }
