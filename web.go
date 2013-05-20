@@ -41,7 +41,11 @@ func listenAndServe(opts serverOptions) {
 
 	h := handlers.FaviconHandler(
 		handlers.PanicHandler(
-			mux,
+			handlers.LogHandler(
+				mux,
+				&handlers.LogOptions{
+					Format: handlers.Lshort,
+				}),
 			nil),
 		path.Join(opts.Root, "public/favicon.ico"),
 		faviconCacheTTL)
