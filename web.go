@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"path"
 	"time"
 
@@ -42,19 +41,18 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func servePost(w http.ResponseWriter, r *http.Request) {
-	if f, err := os.Open(path.Join(webServerOpts.Root, webServerOpts.Posts, r.URL.Path)); err != nil {
+	if data, err := getPostData(path.Join(webServerOpts.Root, webServerOpts.Posts, r.URL.Path)); err != nil {
+		log.Print("!", err)
 		http.NotFound(w, r)
-		return
 	} else {
-		defer f.Close()
-	}
-	if err := templates.Render("testdata/templates/post.amber", w, nil); err != nil {
-		if err == templates.ErrTemplateNotExist {
-			http.NotFound(w, r)
-			return
-		} else {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
+		log.Printf("? %#v", data)
+		if err := templates.Render("testdata/templates/post.amber", w, data); err != nil {
+			log.Print("!", err)
+			if err == templates.ErrTemplateNotExist {
+				http.NotFound(w, r)
+			} else {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			}
 		}
 	}
 }
