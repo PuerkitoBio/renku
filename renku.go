@@ -7,6 +7,12 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
+const (
+	defaultPosts     = "posts/"
+	defaultTemplates = "templates/"
+	defaultPublic    = "public/"
+)
+
 var (
 	// The various command-line flags and options
 	opts struct {
@@ -36,10 +42,13 @@ func main() {
 			defer f.Close()
 		}
 
-		so := serverOptions{
-			Port: opts.Port,
-			Root: opts.Root,
+		webServerOpts = serverOptions{
+			Port:      opts.Port,
+			Root:      opts.Root,
+			Posts:     defaultPosts,
+			Templates: defaultTemplates,
+			Public:    defaultPublic,
 		}
-		listenAndServe(so)
+		listenAndServe()
 	}
 }
