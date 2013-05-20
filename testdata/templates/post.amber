@@ -1,0 +1,10 @@
+extends layout
+
+block title
+	| Post Title
+
+block meta-desc
+	meta[name="description"][content="some description"]
+
+block content
+	h1 Post!
