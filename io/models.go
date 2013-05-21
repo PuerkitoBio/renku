@@ -1,9 +1,11 @@
-package main
+package io
 
 import (
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/PuerkitoBio/renku/config"
 )
 
 type Server struct {
@@ -51,15 +53,15 @@ var (
 func ensureServerCreated() {
 	if serverData == nil {
 		serverData = &Server{
-			webServerOpts.Port,
-			webServerOpts.Root,
+			config.Settings.Port,
+			config.Settings.Root,
 			nil,
 			startTime,
 		}
 	}
 }
 
-func getPostData(postPath string) (*PostTemplateData, error) {
+func GetPostData(postPath string) (*PostTemplateData, error) {
 	ensureServerCreated()
 
 	if f, err := os.Open(postPath); err != nil {

@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"fmt"
@@ -10,30 +10,12 @@ import (
 	"github.com/PuerkitoBio/ghost/handlers"
 	"github.com/PuerkitoBio/ghost/templates"
 	_ "github.com/PuerkitoBio/ghost/templates/amber"
+	"github.com/PuerkitoBio/renku/config"
+	"github.com/PuerkitoBio/renku/io"
 )
-
-type logMode int
 
 const (
-	lmNormal logMode = iota
-	lmQuiet
-	lmVerbose
-
 	faviconCacheTTL = 30 * 24 * time.Hour
-)
-
-type serverOptions struct {
-	Port      int
-	Root      string
-	Posts     string
-	Templates string
-	Public    string
-	LogMode   logMode
-	Watch     bool
-}
-
-var (
-	webServerOpts serverOptions
 )
 
 func serveIndex(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +23,9 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func servePost(w http.ResponseWriter, r *http.Request) {
-	if data, err := getPostData(path.Join(webServerOpts.Root, webServerOpts.Posts, r.URL.Path)); err != nil {
+	if data, err := io.GetPostData(path.Join(config.Settings.Root,
+		config.Settings.PostsDir, r.URL.Path)); err != nil {
+
 		log.Print("!", err)
 		http.NotFound(w, r)
 	} else {
@@ -65,16 +49,16 @@ func servePage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func listenAndServe() {
+func ListenAndServe() {
 	// Compile templates
-	if err := templates.CompileDir(path.Join(webServerOpts.Root, webServerOpts.Templates)); err != nil {
+	if err := templates.CompileDir(path.Join(config.Settings.Root, config.Settings.TemplatesDir)); err != nil {
 		log.Fatal("error compiling templates", err)
 	}
 
 	mux := http.NewServeMux()
 	// TODO : Eventually, will go through cache first
 	mux.Handle("/public/", http.StripPrefix("/public/",
-		http.FileServer(http.Dir(path.Join(webServerOpts.Root, webServerOpts.Public)))))
+		http.FileServer(http.Dir(path.Join(config.Settings.Root, config.Settings.PublicDir)))))
 	mux.HandleFunc("/", servePage)
 
 	h := handlers.FaviconHandler(
@@ -85,9 +69,9 @@ func listenAndServe() {
 					Format: handlers.Lshort,
 				}),
 			nil),
-		path.Join(webServerOpts.Root, webServerOpts.Public, "favicon.ico"),
+		path.Join(config.Settings.Root, config.Settings.PublicDir, "favicon.ico"),
 		faviconCacheTTL)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", webServerOpts.Port), h); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Settings.Port), h); err != nil {
 		log.Fatal("^", err)
 	}
 }
