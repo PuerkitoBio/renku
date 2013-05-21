@@ -46,7 +46,7 @@ func servePost(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	} else {
 		log.Printf("? %#v", data)
-		if err := templates.Render("testdata/templates/post.amber", w, data); err != nil {
+		if err := templates.Render("post.amber", w, data); err != nil {
 			log.Print("!", err)
 			if err == templates.ErrTemplateNotExist {
 				http.NotFound(w, r)
@@ -85,7 +85,7 @@ func listenAndServe() {
 					Format: handlers.Lshort,
 				}),
 			nil),
-		path.Join(webServerOpts.Root, path.Join(webServerOpts.Root, webServerOpts.Public, "favicon.ico")),
+		path.Join(webServerOpts.Root, webServerOpts.Public, "favicon.ico"),
 		faviconCacheTTL)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", webServerOpts.Port), h); err != nil {
 		log.Fatal("^", err)
