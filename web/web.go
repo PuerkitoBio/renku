@@ -11,11 +11,23 @@ import (
 	"github.com/PuerkitoBio/ghost/templates"
 	_ "github.com/PuerkitoBio/ghost/templates/amber"
 	"github.com/PuerkitoBio/renku/config"
-	"github.com/PuerkitoBio/renku/io"
 )
 
 const (
 	faviconCacheTTL = 30 * 24 * time.Hour
+)
+
+type BlogReader interface {
+	GetPost(string) (interface{}, error)
+	GetIndex() (interface{}, error)
+}
+
+var (
+	Reader BlogReader
+
+	pubDir string
+	pstDir string
+	tplDir string
 )
 
 func serveIndex(w http.ResponseWriter, r *http.Request) {
@@ -23,13 +35,10 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func servePost(w http.ResponseWriter, r *http.Request) {
-	if data, err := io.GetPostData(path.Join(config.Settings.Root,
-		config.Settings.PostsDir, r.URL.Path)); err != nil {
-
+	if data, err := Reader.GetPost(path.Join(pstDir, r.URL.Path)); err != nil {
 		log.Print("!", err)
 		http.NotFound(w, r)
 	} else {
-		log.Printf("? %#v", data)
 		if err := templates.Render("post.amber", w, data); err != nil {
 			log.Print("!", err)
 			if err == templates.ErrTemplateNotExist {
@@ -50,17 +59,22 @@ func servePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListenAndServe() {
+	// Store common directories, for convenience
+	pstDir = path.Join(config.Settings.Root, config.Settings.PostsDir)
+	pubDir = path.Join(config.Settings.Root, config.Settings.PublicDir)
+	tplDir = path.Join(config.Settings.Root, config.Settings.TemplatesDir)
+
 	// Compile templates
-	if err := templates.CompileDir(path.Join(config.Settings.Root, config.Settings.TemplatesDir)); err != nil {
+	if err := templates.CompileDir(tplDir); err != nil {
 		log.Fatal("error compiling templates", err)
 	}
 
+	// Handle paths
 	mux := http.NewServeMux()
-	// TODO : Eventually, will go through cache first
-	mux.Handle("/public/", http.StripPrefix("/public/",
-		http.FileServer(http.Dir(path.Join(config.Settings.Root, config.Settings.PublicDir)))))
+	mux.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir(pubDir))))
 	mux.HandleFunc("/", servePage)
 
+	// Setup handlers chain
 	h := handlers.FaviconHandler(
 		handlers.PanicHandler(
 			handlers.LogHandler(
@@ -69,8 +83,9 @@ func ListenAndServe() {
 					Format: handlers.Lshort,
 				}),
 			nil),
-		path.Join(config.Settings.Root, config.Settings.PublicDir, "favicon.ico"),
+		path.Join(pubDir, "favicon.ico"),
 		faviconCacheTTL)
+	// Start listening
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Settings.Port), h); err != nil {
 		log.Fatal("^", err)
 	}
