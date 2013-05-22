@@ -16,6 +16,17 @@ type BlogReader struct {
 	serverData *Server
 }
 
+func NewBlogReader() *BlogReader {
+	b := new(BlogReader)
+	// Sync with file system
+	b.readPosts()
+	return b
+}
+
+func (ø *BlogReader) readPosts() {
+
+}
+
 func (ø *BlogReader) ensureServerCreated() {
 	ø.mu.RLock()
 	if ø.serverData == nil {

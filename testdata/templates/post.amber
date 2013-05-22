@@ -9,4 +9,4 @@ block meta-desc
 block content
 	h1 Post! #{Post.Path}
 	h2 Port: #{Server.Port}
-	div #{Post.Text}
+	div #{unescaped(Post.Text)}
