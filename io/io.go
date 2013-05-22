@@ -1,11 +1,15 @@
 package io
 
 import (
-	"github.com/PuerkitoBio/renku/config"
 	"io/ioutil"
 	"os"
 	"sync"
+
+	"github.com/PuerkitoBio/renku/config"
+	"github.com/russross/blackfriday"
 )
+
+// TODO : As-is, no caching of data nor response, ~500-700 TPS with Siege/OSX
 
 type BlogReader struct {
 	mu         sync.RWMutex
@@ -40,6 +44,7 @@ func (ø *BlogReader) GetPost(postPath string) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		// No need to lock serverData here, is necessarily present, and won't be
 		// written by another thread.
 		return &PostTemplateData{
@@ -48,7 +53,7 @@ func (ø *BlogReader) GetPost(postPath string) (interface{}, error) {
 				Post: &Post{
 					Path: postPath,
 				},
-				Text: b,
+				Text: string(blackfriday.MarkdownCommon(b)),
 			},
 		}, nil
 	}

@@ -1,7 +1,7 @@
 extends layout
 
 block title
-	| Post Title #{Post.Path}
+	Post Title #{Post.Path}
 
 block meta-desc
 	meta[name="description"][content="some description"]
@@ -9,3 +9,4 @@ block meta-desc
 block content
 	h1 Post! #{Post.Path}
 	h2 Port: #{Server.Port}
+	div #{Post.Text}

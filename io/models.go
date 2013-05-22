@@ -28,7 +28,7 @@ type Post struct {
 
 type PostDetail struct {
 	*Post
-	Text []byte
+	Text string
 }
 
 type IndexTemplateData struct {
