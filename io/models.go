@@ -1,11 +1,7 @@
 package io
 
 import (
-	"io/ioutil"
-	"os"
 	"time"
-
-	"github.com/PuerkitoBio/renku/config"
 )
 
 type Server struct {
@@ -43,43 +39,4 @@ type IndexTemplateData struct {
 type PostTemplateData struct {
 	Server *Server
 	Post   *PostDetail
-}
-
-var (
-	startTime  = time.Now()
-	serverData *Server
-)
-
-func ensureServerCreated() {
-	if serverData == nil {
-		serverData = &Server{
-			config.Settings.Port,
-			config.Settings.Root,
-			nil,
-			startTime,
-		}
-	}
-}
-
-func GetPostData(postPath string) (*PostTemplateData, error) {
-	ensureServerCreated()
-
-	if f, err := os.Open(postPath); err != nil {
-		return nil, err
-	} else {
-		defer f.Close()
-		b, err := ioutil.ReadAll(f)
-		if err != nil {
-			return nil, err
-		}
-		return &PostTemplateData{
-			serverData,
-			&PostDetail{
-				Post: &Post{
-					Path: postPath,
-				},
-				Text: b,
-			},
-		}, nil
-	}
 }

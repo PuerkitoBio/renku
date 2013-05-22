@@ -85,7 +85,9 @@ func ListenAndServe() {
 			nil),
 		path.Join(pubDir, "favicon.ico"),
 		faviconCacheTTL)
+
 	// Start listening
+	config.Settings.StartTime = time.Now()
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Settings.Port), h); err != nil {
 		log.Fatal("^", err)
 	}

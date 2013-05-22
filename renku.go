@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/PuerkitoBio/renku/config"
+	"github.com/PuerkitoBio/renku/io"
 	"github.com/PuerkitoBio/renku/web"
 	"github.com/jessevdk/go-flags"
 )
@@ -21,6 +22,7 @@ func main() {
 			log.SetOutput(f)
 			defer f.Close()
 		}
+		web.Reader = new(io.BlogReader)
 		web.ListenAndServe()
 	}
 }

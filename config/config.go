@@ -1,5 +1,9 @@
 package config
 
+import (
+	"time"
+)
+
 var Settings struct {
 	Root           string `short:"d" long:"directory" description:"the root directory of the website" default:"./"`
 	Port           int    `short:"p" long:"port" description:"the port to use for the web server" default:"9000"`
@@ -15,6 +19,7 @@ var Settings struct {
 	PublicDir      string
 	PostsDir       string
 	DraftsDir      string
+	StartTime      time.Time
 }
 
 func init() {
