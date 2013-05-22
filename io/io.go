@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/PuerkitoBio/renku/config"
@@ -13,21 +14,21 @@ import (
 // TODO : As-is, no caching of data nor response, ~500-700 TPS with Siege/OSX
 
 type BlogReader struct {
-	posts      map[string]*PostDetail
+	posts      map[string]*PostTemplateData
 	serverData *Server
 }
 
 func NewBlogReader() *BlogReader {
 	b := new(BlogReader)
-	b.posts = make(map[string]*PostDetail)
+	b.posts = make(map[string]*PostTemplateData)
 	// Sync with file system
 	b.createServer()
 	b.readPosts()
 	return b
 }
 
-func (ø *BlogReader) getPostDetail(fi os.FileInfo) (*PostDetail, error) {
-	f, err := os.Open(fi.Name())
+func (ø *BlogReader) getPostData(fi os.FileInfo) (*PostTemplateData, error) {
+	f, err := os.Open(path.Join(config.Settings.Root, config.Settings.PostsDir, fi.Name()))
 	if err != nil {
 		return nil, err
 	}
@@ -36,26 +37,29 @@ func (ø *BlogReader) getPostDetail(fi os.FileInfo) (*PostDetail, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PostDetail{
-		Post: &Post{
-			Path: fi.Name(),
-		},
-		Text: string(blackfriday.MarkdownCommon(b)),
-	}, nil
+	return &PostTemplateData{
+		Server: ø.serverData,
+		Post: &PostDetail{
+			Post: &Post{
+				Path: f.Name(),
+			},
+			Text: string(blackfriday.MarkdownCommon(b)),
+		}}, nil
 }
 
 func (ø *BlogReader) readPosts() {
-	fis, err := ioutil.ReadDir(filepath.Join(config.Settings.Root, config.Settings.PostsDir))
+	fis, err := ioutil.ReadDir(path.Join(config.Settings.Root, config.Settings.PostsDir))
 	if err != nil {
 		log.Println("error reading posts: ", err)
 	}
 	for _, fi := range fis {
 		if ext := filepath.Ext(fi.Name()); ext == ".md" || ext == ".markdown" {
-			pd, err := ø.getPostDetail(fi)
+			pd, err := ø.getPostData(fi)
 			if err != nil {
-				log.Printf("error building post detail for %s: %s\n", fi.Name(), err)
+				log.Printf("error building post data for %s: %s\n", fi.Name(), err)
 			} else {
-				ø.posts[fi.Name()] = pd
+				log.Printf("storing post %s\n", pd.Post.Path)
+				ø.posts[pd.Post.Path] = pd
 			}
 		}
 	}

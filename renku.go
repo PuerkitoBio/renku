@@ -22,7 +22,7 @@ func main() {
 			log.SetOutput(f)
 			defer f.Close()
 		}
-		web.Reader = new(io.BlogReader)
+		web.Reader = io.NewBlogReader()
 		web.ListenAndServe()
 	}
 }
