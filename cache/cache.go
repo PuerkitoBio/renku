@@ -3,11 +3,12 @@ package cache
 import (
 	"bytes"
 	"container/list"
-	"github.com/PuerkitoBio/ghost/handlers"
-	"github.com/PuerkitoBio/purell"
 	"io"
 	"net/http"
 	"sync"
+
+	"github.com/PuerkitoBio/ghost/handlers"
+	"github.com/PuerkitoBio/purell"
 )
 
 type lruCache struct {
@@ -62,6 +63,16 @@ func (ø *lruCache) set(ci CacheableItem) {
 	}
 }
 
+type responseCacheItem struct {
+	buf  *bytes.Buffer
+	hdr  http.Header
+	nurl string
+}
+
+func (ø responseCacheItem) Key() string {
+	return ø.nurl
+}
+
 type cacheWriter struct {
 	http.ResponseWriter
 	code  int
@@ -75,6 +86,10 @@ func (ø *cacheWriter) WriteHeader(code int) {
 
 func (ø *cacheWriter) Write(b []byte) (int, error) {
 	return ø.multi.Write(b)
+}
+
+func copyHeader(dst, src http.Header) {
+
 }
 
 func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.NormalizationFlags) http.Handler {
@@ -95,8 +110,10 @@ func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.Normalization
 			return
 		}
 		if ci, ok := c.get(nUrl); ok {
-			// TODO : return cached content
-			_ = ci
+			// Return cached content
+			item := ci.(*responseCacheItem)
+			copyHeader(item.hdr, w.Header())
+			w.Write(item.buf.Bytes())
 			return
 		}
 
@@ -112,8 +129,12 @@ func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.Normalization
 		h.ServeHTTP(cw, r)
 
 		if cw.code >= 200 && cw.code < 300 {
-			// TODO : Store the response in the cache
-			// TODO : Save the header's keys too
+			item := &responseCacheItem{
+				buf:  buf,
+				hdr:  cw.Header(),
+				nurl: nUrl,
+			}
+			c.set(item)
 		}
 	})
 }
