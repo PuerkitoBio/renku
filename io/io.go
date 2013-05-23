@@ -89,8 +89,6 @@ func (ø *BlogReader) GetPost(postPath string) (interface{}, error) {
 			return nil, err
 		}
 
-		// No need to lock serverData here, is necessarily present, and won't be
-		// written by another thread.
 		return &PostTemplateData{
 			ø.serverData,
 			&PostDetail{
