@@ -13,7 +13,7 @@ var Settings struct {
 	Quiet          bool   `short:"q" long:"quiet" description:"don't log anything unless it's important"`
 	NoCache        bool   `short:"C" long:"no-cache" description:"disable the response cache"`
 	NoPrefillCache bool   `short:"P" long:"no-prefill-cache" description:"don't prefill the response cache"`
-	CacheCap       int    `short:"c" long:"cache-capacity" description:"set the maximum number of items in the response cache"`
+	CacheSz        int    `short:"c" long:"cache-size" description:"set the maximum number of items in the response cache"`
 	NoWatch        bool   `short:"W" long:"no-watch" description:"disable the file watcher"`
 	TemplatesDir   string
 	PublicDir      string

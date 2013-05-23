@@ -2,8 +2,11 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/PuerkitoBio/purell"
+	"github.com/PuerkitoBio/renku/cache"
 	"github.com/PuerkitoBio/renku/config"
 	"github.com/PuerkitoBio/renku/io"
 	"github.com/PuerkitoBio/renku/web"
@@ -22,7 +25,11 @@ func main() {
 			log.SetOutput(f)
 			defer f.Close()
 		}
+		// Set up dependencies
 		web.Reader = io.NewBlogReader()
+		web.CacheHandler = func(h http.Handler) http.Handler {
+			return cache.LRUCacheHandler(h, config.Settings.CacheSz, purell.FlagsSafe)
+		}
 		web.ListenAndServe()
 	}
 }

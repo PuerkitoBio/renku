@@ -23,7 +23,9 @@ type BlogReader interface {
 }
 
 var (
-	Reader BlogReader
+	// Dependencies, injected by the executable (renku.go)
+	Reader       BlogReader
+	CacheHandler func(http.Handler) http.Handler
 
 	pubDir string
 	pstDir string
@@ -59,6 +61,8 @@ func servePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListenAndServe() {
+	var h http.Handler
+
 	// Store common directories, for convenience
 	pstDir = path.Join(config.Settings.Root, config.Settings.PostsDir)
 	pubDir = path.Join(config.Settings.Root, config.Settings.PublicDir)
@@ -73,12 +77,21 @@ func ListenAndServe() {
 	mux := http.NewServeMux()
 	mux.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir(pubDir))))
 	mux.HandleFunc("/", servePage)
+	h = mux
+
+	// If the cache is enabled, hook it up
+	if !config.Settings.NoCache {
+		if CacheHandler == nil {
+			log.Fatal("cache handler is nil")
+		}
+		h = CacheHandler(mux)
+	}
 
 	// Setup handlers chain
-	h := handlers.FaviconHandler(
+	h = handlers.FaviconHandler(
 		handlers.PanicHandler(
 			handlers.LogHandler(
-				mux,
+				h,
 				&handlers.LogOptions{
 					Format: handlers.Lshort,
 				}),
