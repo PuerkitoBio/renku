@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	faviconCacheTTL = 30 * 24 * time.Hour
+	faviconCacheTTL = 30 * 24 * time.Hour // 30 days
 )
 
 type BlogReader interface {

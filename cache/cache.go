@@ -54,7 +54,7 @@ func (ø *lruCache) set(ci CacheableItem) {
 	}
 	e := ø.l.PushFront(ci)
 	ø.m[k] = e
-	if ø.l.Len() > ø.sz && ø.sz > 0 {
+	for ø.l.Len() > ø.sz && ø.sz > 0 {
 		// The tail (LRU) must be dropped
 		e := ø.l.Back()
 		backCi := e.Value.(CacheableItem)

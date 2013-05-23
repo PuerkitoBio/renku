@@ -11,8 +11,6 @@ import (
 	"github.com/russross/blackfriday"
 )
 
-// TODO : As-is, no caching of data nor response, ~500-700 TPS with Siege/OSX
-
 type BlogReader struct {
 	posts      map[string]*PostTemplateData
 	serverData *Server
