@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"container/list"
 	"io"
+	"log"
 	"net/http"
 	"sync"
 
@@ -111,6 +112,7 @@ func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.Normalization
 		}
 		if ci, ok := c.get(nUrl); ok {
 			// Return cached content
+			log.Printf("serving %s from cache", r.URL)
 			item := ci.(*responseCacheItem)
 			copyHeader(item.hdr, w.Header())
 			w.Write(item.buf.Bytes())
