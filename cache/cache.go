@@ -90,7 +90,9 @@ func (ø *cacheWriter) Write(b []byte) (int, error) {
 }
 
 func copyHeader(dst, src http.Header) {
-
+	for k, v := range src {
+		dst[k] = v
+	}
 }
 
 func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.NormalizationFlags) http.Handler {

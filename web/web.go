@@ -77,7 +77,7 @@ func ListenAndServe() {
 	mux := http.NewServeMux()
 	mux.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir(pubDir))))
 	mux.HandleFunc("/", servePage)
-	h = mux
+	h = handlers.GZIPHandler(mux, nil)
 
 	// If the cache is enabled, hook it up
 	if !config.Settings.NoCache {
