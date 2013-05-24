@@ -59,7 +59,7 @@ func (ø *lruCache) set(ci CacheableItem) {
 	for ø.l.Len() > ø.sz && ø.sz > 0 {
 		// The tail (LRU) must be dropped
 		e := ø.l.Back()
-		backCi := e.Value.(CacheableItem)
+		backCi := ø.l.Remove(e).(CacheableItem)
 		delete(ø.m, backCi.Key())
 	}
 }
