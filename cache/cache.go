@@ -90,7 +90,9 @@ func (ø *cacheWriter) Write(b []byte) (int, error) {
 }
 
 func copyHeader(dst, src http.Header) {
+	log.Printf("copyHeader: src=%d, dst=%d", len(src), len(dst))
 	for k, v := range src {
+		log.Printf("%s = %s", k, v)
 		dst[k] = v
 	}
 }
@@ -116,7 +118,7 @@ func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.Normalization
 			// Return cached content
 			log.Printf("serving %s from cache", r.URL)
 			item := ci.(*responseCacheItem)
-			copyHeader(item.hdr, w.Header())
+			copyHeader(w.Header(), item.hdr)
 			w.Write(item.buf.Bytes())
 			return
 		}
@@ -133,6 +135,7 @@ func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.Normalization
 		h.ServeHTTP(cw, r)
 
 		if cw.code >= 200 && cw.code < 300 {
+			log.Printf("caching header: %d", len(cw.Header()))
 			item := &responseCacheItem{
 				buf:  buf,
 				hdr:  cw.Header(),

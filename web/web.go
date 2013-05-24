@@ -84,7 +84,7 @@ func ListenAndServe() {
 		if CacheHandler == nil {
 			log.Fatal("cache handler is nil")
 		}
-		h = CacheHandler(mux)
+		h = CacheHandler(h)
 	}
 
 	// Setup handlers chain
