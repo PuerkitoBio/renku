@@ -90,9 +90,7 @@ func (ø *cacheWriter) Write(b []byte) (int, error) {
 }
 
 func copyHeader(dst, src http.Header) {
-	log.Printf("copyHeader: src=%d, dst=%d", len(src), len(dst))
 	for k, v := range src {
-		log.Printf("%s = %s", k, v)
 		dst[k] = v
 	}
 }
