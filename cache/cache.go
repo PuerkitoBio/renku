@@ -114,7 +114,6 @@ func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.Normalization
 		}
 		if ci, ok := c.get(nUrl); ok {
 			// Return cached content
-			log.Printf("serving %s from cache", r.URL)
 			item := ci.(*responseCacheItem)
 			copyHeader(w.Header(), item.hdr)
 			w.Write(item.buf.Bytes())
@@ -130,10 +129,11 @@ func LRUCacheHandler(h http.Handler, cacheSz int, normFlags purell.Normalization
 		}
 
 		// Call the wrapped handler with the cache writer
+		log.Printf("serving %s without cache", r.URL)
 		h.ServeHTTP(cw, r)
 
+		// Cache only if response is success
 		if cw.code >= 200 && cw.code < 300 {
-			log.Printf("caching header: %d", len(cw.Header()))
 			item := &responseCacheItem{
 				buf:  buf,
 				hdr:  cw.Header(),
