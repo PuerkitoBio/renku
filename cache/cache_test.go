@@ -1,8 +1,9 @@
 package cache
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 type cachedItem struct {

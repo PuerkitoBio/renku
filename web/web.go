@@ -82,7 +82,7 @@ func ListenAndServe() {
 	// If the cache is enabled, hook it up
 	if !config.Settings.NoCache {
 		if CacheHandler == nil {
-			log.Fatal("cache handler is nil")
+			log.Fatal("cache requested, but cache handler is nil")
 		}
 		h = CacheHandler(h)
 	}
@@ -101,6 +101,7 @@ func ListenAndServe() {
 
 	// Start listening
 	config.Settings.StartTime = time.Now()
+	log.Printf("renku started on port %d", config.Settings.Port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.Settings.Port), h); err != nil {
 		log.Fatal("^", err)
 	}

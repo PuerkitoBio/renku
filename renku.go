@@ -9,6 +9,7 @@ import (
 	"github.com/PuerkitoBio/renku/cache"
 	"github.com/PuerkitoBio/renku/config"
 	"github.com/PuerkitoBio/renku/io"
+	"github.com/PuerkitoBio/renku/watcher"
 	"github.com/PuerkitoBio/renku/web"
 	"github.com/jessevdk/go-flags"
 )
@@ -29,6 +30,12 @@ func main() {
 		web.Reader = io.NewBlogReader()
 		web.CacheHandler = func(h http.Handler) http.Handler {
 			return cache.LRUCacheHandler(h, config.Settings.CacheSz, purell.FlagsSafe)
+		}
+
+		// Start watcher unless explicitly prohibited
+		if !config.Settings.NoWatch {
+			watcher.Start()
+			defer watcher.Stop()
 		}
 		web.ListenAndServe()
 	}
