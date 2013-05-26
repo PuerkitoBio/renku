@@ -2,58 +2,72 @@ package watcher
 
 import (
 	"log"
-	"path"
 
-	"github.com/PuerkitoBio/renku/config"
+	"github.com/PuerkitoBio/renku/iface"
 	"github.com/howeyc/fsnotify"
 )
 
-var (
-	stop chan struct{}
+type Watcher struct {
+	ev   chan iface.FileEvent
+	dir  string
 	w    *fsnotify.Watcher
-)
+	stop chan struct{}
+}
 
-func processEvents() {
+func New(dir string) *Watcher {
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatalf("could not create watcher: %s", err)
+	}
+	return &Watcher{
+		ev:   make(chan iface.FileEvent),
+		dir:  dir,
+		w:    w,
+		stop: make(chan struct{}),
+	}
+}
+
+func (ø *Watcher) Event() <-chan iface.FileEvent {
+	return ø.ev
+}
+
+func (ø *Watcher) Dir() string {
+	return ø.dir
+}
+
+type FileEvent struct {
+	*fsnotify.FileEvent
+}
+
+func (ø *FileEvent) Name() string {
+	return ø.FileEvent.Name
+}
+
+func (ø *Watcher) processEvents() {
 	for {
 		select {
-		case ev := <-w.Event:
+		case ev := <-ø.w.Event:
+			ø.ev <- &FileEvent{ev}
 			log.Println(ev)
-		case err := <-w.Error:
+		case err := <-ø.w.Error:
 			log.Println(err)
-		case <-stop:
+		case <-ø.stop:
 			return
 		}
 	}
 }
 
-func Start() {
-	var err error
-
-	// Error if started twice
-	if w != nil {
-		log.Print("watcher already started")
-		return
-	}
-
-	// Create watcher
-	w, err = fsnotify.NewWatcher()
-	if err != nil {
-		log.Fatal("error creating watcher: ", err)
-	}
-
+func (ø *Watcher) Start() {
 	// Start processing events
-	stop = make(chan struct{})
-	go processEvents()
+	go ø.processEvents()
 
-	// Watch the posts directory
-	if err = w.Watch(path.Join(config.Settings.Root, config.Settings.PostsDir)); err != nil {
-		log.Fatalf("error watching %s: %s", config.Settings.PostsDir, err)
+	// Watch the directory
+	if err := ø.w.Watch(ø.dir); err != nil {
+		log.Fatalf("error watching %s: %s", ø.dir, err)
 	}
 }
 
-func Stop() {
-	if w != nil {
-		w.Close()
-		close(stop)
-	}
+func (ø *Watcher) Stop() {
+	ø.w.Close()
+	close(ø.stop)
 }

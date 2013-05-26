@@ -2,6 +2,8 @@ package io
 
 import (
 	"time"
+
+	"github.com/PuerkitoBio/renku/config"
 )
 
 type Server struct {
@@ -9,6 +11,15 @@ type Server struct {
 	Root       string
 	Categories []string
 	StartTime  time.Time
+}
+
+func newServer() *Server {
+	return &Server{
+		config.Settings.Port,
+		config.Settings.Root,
+		nil,
+		config.Settings.StartTime,
+	}
 }
 
 type Index struct {

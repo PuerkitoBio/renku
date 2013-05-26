@@ -8,20 +8,28 @@ import (
 	"path/filepath"
 
 	"github.com/PuerkitoBio/renku/config"
+	"github.com/PuerkitoBio/renku/iface"
 	"github.com/russross/blackfriday"
 )
 
 type BlogReader struct {
 	posts      map[string]*PostTemplateData
 	serverData *Server
+	watcher    iface.Watcher
 }
 
-func NewBlogReader() *BlogReader {
-	b := new(BlogReader)
-	b.posts = make(map[string]*PostTemplateData)
+func NewBlogReader(w iface.Watcher) *BlogReader {
+	b := &BlogReader{
+		posts:      make(map[string]*PostTemplateData),
+		serverData: newServer(),
+		watcher:    w,
+	}
 	// Sync with file system
-	b.createServer()
 	b.readPosts()
+	if b.watcher != nil {
+		b.watcher.Start()
+		// TODO : Stop in renku.go?
+	}
 	return b
 }
 
@@ -60,15 +68,6 @@ func (ø *BlogReader) readPosts() {
 				ø.posts[pd.Post.Path] = pd
 			}
 		}
-	}
-}
-
-func (ø *BlogReader) createServer() {
-	ø.serverData = &Server{
-		config.Settings.Port,
-		config.Settings.Root,
-		nil,
-		config.Settings.StartTime,
 	}
 }
 

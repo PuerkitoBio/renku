@@ -4,10 +4,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/PuerkitoBio/purell"
 	"github.com/PuerkitoBio/renku/cache"
 	"github.com/PuerkitoBio/renku/config"
+	"github.com/PuerkitoBio/renku/iface"
 	"github.com/PuerkitoBio/renku/io"
 	"github.com/PuerkitoBio/renku/watcher"
 	"github.com/PuerkitoBio/renku/web"
@@ -27,16 +29,15 @@ func main() {
 			defer f.Close()
 		}
 		// Set up dependencies
-		web.Reader = io.NewBlogReader()
+		var postsWatcher iface.Watcher
+		if !config.Settings.NoWatch {
+			postsWatcher = watcher.New(path.Join(config.Settings.Root, config.Settings.PostsDir))
+		}
+		web.Reader = io.NewBlogReader(postsWatcher)
 		web.CacheHandler = func(h http.Handler) http.Handler {
 			return cache.LRUCacheHandler(h, config.Settings.CacheSz, purell.FlagsSafe)
 		}
 
-		// Start watcher unless explicitly prohibited
-		if !config.Settings.NoWatch {
-			watcher.Start()
-			defer watcher.Stop()
-		}
 		web.ListenAndServe()
 	}
 }
